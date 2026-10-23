@@ -1,0 +1,381 @@
+{
+  "name": "AI-ассистент поддержки (база знаний + LLM + передача менеджеру)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "support-assistant",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "8dab90be-0c6f-4d2d-aa62-f9f66376f3fa",
+      "name": "Webhook: сообщение клиента",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        300
+      ],
+      "webhookId": "5601719e-19c7-4cd1-88fe-2665c01c1cae"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Настройки шаблона: меняются здесь, в одном месте.\nconst CONFIG = {\n  llm_base_url: 'https://api.openai.com/v1',   // любой OpenAI-совместимый API\n  llm_model: 'gpt-4o-mini',\n  threshold: 0.7,                               // порог уверенности для автоответа\n  manager_chat_id: 'MANAGER_CHAT_ID',           // Telegram-чат менеджера\n};\n\nconst raw = $input.first().json;\nconst body = raw.body || raw;\nconst message = String(body.message || body.text || '').replace(/\\s+/g, ' ').trim().slice(0, 2000);\nconst now = new Date();\nconst stamp = now.toISOString().slice(0, 10).replace(/-/g, '');\n\nreturn [{\n  json: {\n    ...CONFIG,\n    message,\n    session_id: String(body.session_id || 'anon-' + now.getTime()),\n    channel: String(body.channel || 'web'),\n    customer_name: String(body.name || ''),\n    ticket_id: 'T-' + stamp + '-' + Math.random().toString(36).slice(2, 7).toUpperCase(),\n    received_at: now.toISOString(),\n  },\n}];\n"
+      },
+      "id": "355c12c2-02e5-4e44-a180-0fda49f063c2",
+      "name": "Настройки и запрос",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// База знаний магазина посуды «Северный Ковш».\n// В рабочем проекте заменяется запросом к Notion, Google Docs или векторной базе.\nconst KB = [\n  { id: 'kb-01', title: 'Доставка по России', keywords: ['доставка', 'доставить', 'курьер', 'привезти', 'сдэк', 'почта', 'стоимость доставки'],\n    text: 'Доставляем курьером и в пункты выдачи по всей России. По городу 350 ₽, бесплатно от 5000 ₽. В регионы 2–7 рабочих дней, стоимость считается в корзине.' },\n  { id: 'kb-02', title: 'Самовывоз', keywords: ['самовывоз', 'забрать', 'склад', 'адрес', 'пункт'],\n    text: 'Самовывоз со склада: ул. Заводская, 12, пн–пт 10:00–19:00. Заказ готов через 2 часа после подтверждения, хранится 5 дней.' },\n  { id: 'kb-03', title: 'Способы оплаты', keywords: ['оплата', 'оплатить', 'карта', 'сбп', 'наличные', 'счёт', 'счет'],\n    text: 'Оплата картой или по СБП на сайте, наличными или картой при получении. Для юрлиц выставляем счёт.' },\n  { id: 'kb-04', title: 'Возврат и обмен товара', keywords: ['возврат', 'вернуть', 'обмен', 'обменять', 'не подошел', 'не подошёл'],\n    text: 'Товар надлежащего качества можно вернуть в течение 14 дней, если сохранены упаковка и чек. Оформите заявку в личном кабинете, деньги вернём в течение 10 дней после получения товара.' },\n  { id: 'kb-05', title: 'Гарантия', keywords: ['гарантия', 'гарантийный', 'брак', 'сломался', 'сломалась', 'дефект', 'трещина'],\n    text: 'Гарантия на посуду 12 месяцев, на чугун 5 лет. При браке пришлите фото и номер заказа, заменим товар или вернём деньги.' },\n  { id: 'kb-06', title: 'Статус заказа', keywords: ['статус', 'где заказ', 'отследить', 'трек', 'номер заказа', 'когда придет', 'когда придёт'],\n    text: 'Статус и трек-номер видны в личном кабинете в разделе «Мои заказы». Трек приходит по SMS после передачи заказа в доставку.' },\n  { id: 'kb-07', title: 'Уход за чугунной посудой', keywords: ['чугун', 'чугунная', 'сковорода', 'ржавчина', 'прокалить', 'уход', 'мыть'],\n    text: 'Чугун моют без агрессивных средств и сразу вытирают насухо. Раз в несколько месяцев прокаливают с тонким слоем масла. Посудомоечная машина не подходит.' },\n];\n\nconst stem = w => w.toLowerCase().replace(/ё/g, 'е').slice(0, 5);\nconst words = s => s.toLowerCase().replace(/ё/g, 'е').replace(/[^a-zа-я0-9\\s]/g, ' ').split(/\\s+/).filter(w => w.length >= 3);\n\nconst q = $input.first().json;\nconst qStems = new Set(words(q.message).map(stem));\n\nconst scored = KB.map(a => {\n  const hits = a.keywords.filter(k => words(k).every(w => qStems.has(stem(w)))).length;\n  return { ...a, score: Math.min(1, hits / 2) };\n}).filter(a => a.score > 0).sort((a, b) => b.score - a.score).slice(0, 2);\n\nconst context = scored.length\n  ? scored.map(a => `[${a.id}] ${a.title}: ${a.text}`).join('\\n')\n  : 'Подходящих статей не найдено.';\n\nconst llm_request = {\n  model: q.llm_model,\n  temperature: 0.2,\n  response_format: { type: 'json_object' },\n  messages: [\n    { role: 'system', content:\n      'Ты ассистент поддержки интернет-магазина. Отвечай по-русски, коротко и вежливо, только по статьям базы знаний. ' +\n      'Если в статьях нет ответа, не придумывай. Верни JSON: {\"answer\": string, \"confidence\": число от 0 до 1, \"article_ids\": string[]}.' },\n    { role: 'user', content: `Статьи базы знаний:\\n${context}\\n\\nВопрос клиента: ${q.message}` },\n  ],\n};\n\nreturn [{ json: { ...q, kb_hits: scored.map(a => ({ id: a.id, title: a.title, score: a.score })), kb_score: scored[0]?.score || 0, llm_request } }];\n"
+      },
+      "id": "02053e61-8efd-41a5-a75c-23990ff215e2",
+      "name": "Поиск в базе знаний",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.llm_base_url }}/chat/completions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.llm_request) }}",
+        "options": {
+          "timeout": 20000
+        }
+      },
+      "id": "a0910ee4-80b9-497d-94d4-3595b57f9311",
+      "name": "LLM: OpenAI-совместимый API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        660,
+        300
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_ME",
+          "name": "LLM API key (Authorization: Bearer …)"
+        }
+      },
+      "onError": "continueRegularOutput",
+      "retryOnFail": true,
+      "maxTries": 2
+    },
+    {
+      "parameters": {
+        "jsCode": "// Разбор ответа LLM и решение: автоответ или передача менеджеру.\nconst q = $('Поиск в базе знаний').first().json;\nconst res = $input.first().json;\n\nconst FORCE_WORDS = ['оператор', 'менеджер', 'человек', 'жалоб', 'претенз', 'суд', 'верните деньги'];\nconst text = q.message.toLowerCase();\nconst forced = FORCE_WORDS.find(w => new RegExp('(^|[^а-яё])' + w).test(text));\n\nlet answer = '', llmConf = 0, articleIds = [], llmError = '';\ntry {\n  if (res.error) throw new Error(typeof res.error === 'string' ? res.error : (res.error.message || 'llm_error'));\n  const content = res.choices?.[0]?.message?.content;\n  const parsed = typeof content === 'string' ? JSON.parse(content) : content;\n  answer = String(parsed?.answer || '').trim();\n  llmConf = Math.max(0, Math.min(1, Number(parsed?.confidence) || 0));\n  articleIds = Array.isArray(parsed?.article_ids) ? parsed.article_ids : [];\n} catch (e) {\n  llmError = String(e.message || e).slice(0, 200);\n}\n\n// Итоговая уверенность: оценка модели и совпадение с базой знаний.\nconst confidence = q.kb_score === 0 || llmError || !answer ? 0 : Math.round((0.6 * llmConf + 0.4 * q.kb_score) * 100) / 100;\n\nlet reason = '';\nif (!q.message) reason = 'пустое сообщение';\nelse if (forced) reason = `клиент просит человека или жалуется («${forced}»)`;\nelse if (llmError) reason = 'ошибка LLM: ' + llmError;\nelse if (q.kb_score === 0) reason = 'нет статьи в базе знаний';\nelse if (confidence < q.threshold) reason = `низкая уверенность ${confidence}`;\n\nreturn [{ json: {\n  ...q,\n  answer,\n  llm_confidence: llmConf,\n  article_ids: articleIds,\n  confidence,\n  force_handoff: Boolean(forced || llmError || !q.message),\n  handoff_reason: reason,\n  handoff: Boolean(reason),\n} }];\n"
+      },
+      "id": "96a9a724-0388-4189-a5ff-54d71369c9bc",
+      "name": "Оценка уверенности",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "dff41838-fbd2-428a-8483-eca68b9166d6",
+              "leftValue": "={{ $json.confidence }}",
+              "rightValue": "={{ $json.threshold }}",
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            },
+            {
+              "id": "1250c3eb-3cd0-4009-8a89-540a569ed9ac",
+              "leftValue": "={{ $json.force_handoff }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "646ef5b2-1fa3-4b4b-9fbf-3053d690839d",
+      "name": "Уверенность ≥ порога?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1100,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ reply: $json.answer, handoff: false, ticket_id: $json.ticket_id, confidence: $json.confidence }) }}",
+        "options": {}
+      },
+      "id": "c444db00-364a-4efa-8b28-fbae7fb6b4d8",
+      "name": "Ответ клиенту",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1340,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.manager_chat_id }}",
+        "text": "=🔔 Нужен менеджер\nТикет: {{ $json.ticket_id }}\nКанал: {{ $json.channel }}, сессия {{ $json.session_id }}\nПричина: {{ $json.handoff_reason }}\nУверенность: {{ $json.confidence }}\n\nВопрос: {{ $json.message }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "id": "3091cce8-92de-4da7-9a7f-318994bacf61",
+      "name": "Уведомить менеджера",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1340,
+        420
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "REPLACE_ME",
+          "name": "Telegram bot"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ reply: 'Передал ваш вопрос менеджеру, он ответит в рабочее время. Номер обращения: ' + $('Оценка уверенности').item.json.ticket_id, handoff: true, ticket_id: $('Оценка уверенности').item.json.ticket_id }) }}",
+        "options": {}
+      },
+      "id": "b61f7275-5e3b-4a33-9c81-9ea9e823e834",
+      "name": "Ответ: передано менеджеру",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1560,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Одна строка журнала на каждое обращение, для обеих веток.\nconst d = $('Оценка уверенности').first().json;\nreturn [{ json: {\n  'Дата': d.received_at,\n  'Тикет': d.ticket_id,\n  'Сессия': d.session_id,\n  'Канал': d.channel,\n  'Вопрос': d.message,\n  'Статьи': d.kb_hits.map(h => h.id).join(', '),\n  'Уверенность': d.confidence,\n  'Результат': d.handoff ? 'Передано менеджеру' : 'Автоответ',\n  'Причина передачи': d.handoff_reason,\n  'Ответ': d.handoff ? '' : d.answer,\n} }];\n"
+      },
+      "id": "6e7dd677-0881-4c9a-afbb-9e9e94d14c1d",
+      "name": "Строка журнала",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1780,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "GOOGLE_SHEET_ID"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Журнал"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      },
+      "id": "54992638-6759-42a7-8f7b-f458d08d76e3",
+      "name": "Журнал обращений (Google Sheets)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        2000,
+        300
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "REPLACE_ME",
+          "name": "Google Sheets"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## AI-ассистент поддержки\n\nПеред запуском: 1) поменять CONFIG в узле «Настройки и запрос»; 2) подключить учётные данные LLM (Header Auth: Authorization = Bearer KEY), Telegram и Google Sheets; 3) создать лист «Журнал» с колонками из узла «Строка журнала»; 4) заменить базу знаний в узле «Поиск в базе знаний».\n\nЗапрос: POST /webhook/support-assistant {\"message\": \"...\", \"session_id\": \"...\", \"channel\": \"web\"}",
+        "height": 260,
+        "width": 640,
+        "color": 6
+      },
+      "id": "ab92fdaa-d153-4557-9bf8-0ba0cd0c6e2c",
+      "name": "Заметка: настройка",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -40
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook: сообщение клиента": {
+      "main": [
+        [
+          {
+            "node": "Настройки и запрос",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Настройки и запрос": {
+      "main": [
+        [
+          {
+            "node": "Поиск в базе знаний",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Поиск в базе знаний": {
+      "main": [
+        [
+          {
+            "node": "LLM: OpenAI-совместимый API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LLM: OpenAI-совместимый API": {
+      "main": [
+        [
+          {
+            "node": "Оценка уверенности",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Оценка уверенности": {
+      "main": [
+        [
+          {
+            "node": "Уверенность ≥ порога?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Уверенность ≥ порога?": {
+      "main": [
+        [
+          {
+            "node": "Ответ клиенту",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Уведомить менеджера",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Уведомить менеджера": {
+      "main": [
+        [
+          {
+            "node": "Ответ: передано менеджеру",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ответ клиенту": {
+      "main": [
+        [
+          {
+            "node": "Строка журнала",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ответ: передано менеджеру": {
+      "main": [
+        [
+          {
+            "node": "Строка журнала",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Строка журнала": {
+      "main": [
+        [
+          {
+            "node": "Журнал обращений (Google Sheets)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "active": false,
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": []
+}
