@@ -1,14 +1,14 @@
 <!doctype html>
-<html lang="ru">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <style>body{margin:0}[hidden]{display:none!important}</style>
-<title>AI-ассистент поддержки n8n</title>
+<title>n8n AI Support Assistant</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:wght@500;600&family=Inter:wght@400;500;600&display=swap">
 <style>
-/* Layout: одна колонка 1100px; схема сверху, затем стенд диалога (чат + трасса решения), затем JSON сценария */
+/* Layout: one 1100px column; diagram on top, then the chat sandbox (chat + decision trace), then the workflow JSON */
 :root{
   --bg:#f2f5f3; --surface:#ffffff; --ink:#14302a; --muted:#56706a; --line:#d5e0dc;
   --accent:#0f7a6c; --accent-soft:#dcefea; --warn:#b5601a; --warn-soft:#f8e6d6; --code-bg:#0f1f1c; --code-ink:#cfe5df;
@@ -87,7 +87,7 @@ th{font-weight:500;color:var(--muted);font-size:12px}
 .pill.h{background:var(--warn-soft)}
 .steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;padding:0;margin:0;list-style:none;counter-reset:s}
 .steps li{counter-increment:s;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:14px;display:flex;flex-direction:column;gap:4px}
-.steps li::before{content:"Шаг " counter(s);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.steps li::before{content:"Step " counter(s);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:600}
 .code{background:var(--code-bg);border-radius:10px;overflow:hidden;display:grid;grid-template-columns:minmax(0,1fr)}
 .code-h{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 10px 8px 14px;color:var(--code-ink);font-size:13px;border-bottom:1px solid #ffffff1a}
 .code-h button{background:transparent;border-color:#ffffff40;color:var(--code-ink);font-size:13px;padding:5px 12px}
@@ -98,20 +98,20 @@ pre{margin:0;padding:14px;max-height:440px;overflow:auto;color:var(--code-ink);f
 
 <div class="wrap">
 <header>
-  <div class="eyebrow"><span>n8n · автоматизация поддержки</span></div>
-  <h1>AI-ассистент поддержки на n8n</h1>
-  <p class="lead">Сценарий принимает вопрос клиента через Webhook, ищет ответ в базе знаний, просит LLM сформулировать ответ, проверяет уверенность и либо отвечает сам, либо передаёт обращение менеджеру. Каждое обращение пишется в журнал.</p>
+  <div class="eyebrow"><span>n8n · support automation</span></div>
+  <h1>AI Support Assistant on n8n</h1>
+  <p class="lead">The workflow takes a customer question via Webhook, searches the knowledge base, asks an LLM to write the answer, checks confidence and either replies on its own or hands the ticket to a manager. Every request is logged.</p>
   <div class="chips">
-    <span class="chip">12 стандартных узлов</span>
-    <span class="chip">Любой OpenAI-совместимый API</span>
-    <span class="chip">Журнал в Google Sheets</span>
+    <span class="chip">12 standard nodes</span>
+    <span class="chip">Any OpenAI-compatible API</span>
+    <span class="chip">Log in Google Sheets</span>
   </div>
 </header>
 
 <section>
-  <div class="sec-head"><h2>Схема сценария</h2><p>Узлы подсвечиваются, когда вы отправляете сообщение в стенде ниже.</p></div>
+  <div class="sec-head"><h2>Workflow diagram</h2><p>Nodes light up when you send a message in the sandbox below.</p></div>
   <div class="scroll">
-  <svg id="flow" viewBox="0 0 1250 300" style="display:block;width:100%;min-width:960px;height:auto" role="img" aria-label="Схема узлов сценария n8n">
+  <svg id="flow" viewBox="0 0 1250 300" style="display:block;width:100%;min-width:960px;height:auto" role="img" aria-label="n8n workflow node diagram">
     <defs><marker id="ar" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path class="arr" d="M0 0L8 4L0 8z"/></marker></defs>
     <g id="edges"></g><g id="nodes"></g>
   </svg>
@@ -119,55 +119,55 @@ pre{margin:0;padding:14px;max-height:440px;overflow:auto;color:var(--code-ink);f
 </section>
 
 <section>
-  <div class="sec-head"><h2>Стенд диалога</h2><p>Имитация в браузере: поиск по базе знаний и проверка уверенности работают по той же логике, что Code-узлы сценария. Ответ LLM имитируется текстом найденной статьи.</p></div>
+  <div class="sec-head"><h2>Chat sandbox</h2><p>Browser simulation: knowledge base search and the confidence check use the same logic as the workflow Code nodes. The LLM reply is simulated with the text of the matched article.</p></div>
   <div class="lab">
     <div class="panel">
-      <div class="panel-h"><span>Чат на сайте</span><span>POST /webhook/support-assistant</span></div>
+      <div class="panel-h"><span>Website chat</span><span>POST /webhook/support-assistant</span></div>
       <div class="chat" id="chat" aria-live="polite"></div>
-      <form class="composer" id="form"><input id="q" autocomplete="off" placeholder="Например: сколько стоит доставка?" aria-label="Вопрос клиента"><button type="submit">Отправить</button></form>
+      <form class="composer" id="form"><input id="q" autocomplete="off" placeholder="E.g.: how much is delivery?" aria-label="Customer question"><button type="submit">Send</button></form>
       <div class="samples" id="samples"></div>
     </div>
     <div class="panel">
-      <div class="panel-h"><span>Как принято решение</span><span id="tk"></span></div>
+      <div class="panel-h"><span>How the decision was made</span><span id="tk"></span></div>
       <div class="trace" id="trace"></div>
     </div>
   </div>
   <div class="scroll">
-    <table><thead><tr><th>Время</th><th>Тикет</th><th>Вопрос</th><th>Статьи</th><th>Уверенность</th><th>Результат</th></tr></thead><tbody id="log"></tbody></table>
+    <table><thead><tr><th>Time</th><th>Ticket</th><th>Question</th><th>Articles</th><th>Confidence</th><th>Result</th></tr></thead><tbody id="log"></tbody></table>
   </div>
-  <p class="note">Сценарий пишет такую же строку в Google Sheets (лист «Журнал»), плюс ответ и причину передачи.</p>
+  <p class="note">The workflow writes the same row to Google Sheets (the “Log” sheet), plus the answer and the handoff reason.</p>
 </section>
 
 <section>
-  <div class="sec-head"><h2>Подключение</h2></div>
+  <div class="sec-head"><h2>Setup</h2></div>
   <ol class="steps">
-    <li><strong>Импорт</strong>В n8n: Workflows → Import from File или вставить JSON на холст.</li>
-    <li><strong>Настройки</strong>В узле «Настройки и запрос» указать адрес API, модель, порог уверенности и чат менеджера.</li>
-    <li><strong>Ключи</strong>Создать учётные данные: Header Auth для LLM, Telegram-бот, Google Sheets.</li>
-    <li><strong>База знаний</strong>Заменить статьи-примеры в узле «Поиск в базе знаний» на свои или на запрос к Notion / векторной базе.</li>
+    <li><strong>Import</strong>In n8n: Workflows → Import from File, or paste the JSON onto the canvas.</li>
+    <li><strong>Settings</strong>In the “Settings & request” node set the API URL, model, confidence threshold and the manager chat.</li>
+    <li><strong>Keys</strong>Create credentials: Header Auth for the LLM, Telegram bot, Google Sheets.</li>
+    <li><strong>Knowledge base</strong>Replace the sample articles in the “Knowledge base search” node with your own, or with a query to Notion / a vector DB.</li>
   </ol>
 </section>
 
 <section>
-  <div class="sec-head"><h2>JSON сценария</h2><p>Скопируйте и вставьте на холст n8n.</p></div>
+  <div class="sec-head"><h2>Workflow JSON</h2><p>Copy and paste onto the n8n canvas.</p></div>
   <div class="code">
-    <div class="code-h"><span id="jsonmeta">n8n-support-assistant.json</span><button id="copy" type="button">Копировать JSON</button></div>
+    <div class="code-h"><span id="jsonmeta">n8n-support-assistant.json</span><button id="copy" type="button">Copy JSON</button></div>
     <pre id="json" tabindex="0"></pre>
   </div>
 </section>
 
 <section>
-  <div class="sec-head"><h2>Что учесть</h2></div>
+  <div class="sec-head"><h2>Notes</h2></div>
   <ul class="limits">
-    <li>Собран из стандартных узлов n8n, без сторонних нод. Логика Code-узлов проверена на тестовых вопросах.</li>
-    <li>Ключи LLM, Telegram и Google Sheets подключаются при установке, в JSON на их месте заглушки REPLACE_ME.</li>
-    <li>Поиск по базе знаний упрощён: совпадение ключевых слов. Для большой базы нужен векторный поиск.</li>
+    <li>Built from standard n8n nodes, no community nodes. Code node logic is tested on sample questions.</li>
+    <li>LLM, Telegram and Google Sheets keys are connected at setup; the JSON has REPLACE placeholders instead_ME.</li>
+    <li>Knowledge base search is simplified to keyword matching. A large KB needs vector search.</li>
   </ul>
 </section>
 </div>
 
 <script type="application/json" id="wf">{
-  "name": "AI-ассистент поддержки (база знаний + LLM + передача менеджеру)",
+  "name": "AI support assistant (knowledge base + LLM + manager handoff)",
   "nodes": [
     {
       "parameters": {
@@ -177,7 +177,7 @@ pre{margin:0;padding:14px;max-height:440px;overflow:auto;color:var(--code-ink);f
         "options": {}
       },
       "id": "8dab90be-0c6f-4d2d-aa62-f9f66376f3fa",
-      "name": "Webhook: сообщение клиента",
+      "name": "Webhook: customer message",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
@@ -188,10 +188,10 @@ pre{margin:0;padding:14px;max-height:440px;overflow:auto;color:var(--code-ink);f
     },
     {
       "parameters": {
-        "jsCode": "// Настройки шаблона: меняются здесь, в одном месте.\nconst CONFIG = {\n  llm_base_url: 'https://api.openai.com/v1',   // любой OpenAI-совместимый API\n  llm_model: 'gpt-4o-mini',\n  threshold: 0.7,                               // порог уверенности для автоответа\n  manager_chat_id: 'MANAGER_CHAT_ID',           // Telegram-чат менеджера\n};\n\nconst raw = $input.first().json;\nconst body = raw.body || raw;\nconst message = String(body.message || body.text || '').replace(/\\s+/g, ' ').trim().slice(0, 2000);\nconst now = new Date();\nconst stamp = now.toISOString().slice(0, 10).replace(/-/g, '');\n\nreturn [{\n  json: {\n    ...CONFIG,\n    message,\n    session_id: String(body.session_id || 'anon-' + now.getTime()),\n    channel: String(body.channel || 'web'),\n    customer_name: String(body.name || ''),\n    ticket_id: 'T-' + stamp + '-' + Math.random().toString(36).slice(2, 7).toUpperCase(),\n    received_at: now.toISOString(),\n  },\n}];\n"
+        "jsCode": "// Template settings: change them here, in one place.\nconst CONFIG = {\n  llm_base_url: 'https://api.openai.com/v1',   // any OpenAI-compatible API\n  llm_model: 'gpt-4o-mini',\n  threshold: 0.7,                               // confidence threshold for auto-reply\n  manager_chat_id: 'MANAGER_CHAT_ID',           // manager Telegram chat\n};\n\nconst raw = $input.first().json;\nconst body = raw.body || raw;\nconst message = String(body.message || body.text || '').replace(/\\s+/g, ' ').trim().slice(0, 2000);\nconst now = new Date();\nconst stamp = now.toISOString().slice(0, 10).replace(/-/g, '');\n\nreturn [{\n  json: {\n    ...CONFIG,\n    message,\n    session_id: String(body.session_id || 'anon-' + now.getTime()),\n    channel: String(body.channel || 'web'),\n    customer_name: String(body.name || ''),\n    ticket_id: 'T-' + stamp + '-' + Math.random().toString(36).slice(2, 7).toUpperCase(),\n    received_at: now.toISOString(),\n  },\n}];\n"
       },
       "id": "355c12c2-02e5-4e44-a180-0fda49f063c2",
-      "name": "Настройки и запрос",
+      "name": "Settings & request",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -201,10 +201,10 @@ pre{margin:0;padding:14px;max-height:440px;overflow:auto;color:var(--code-ink);f
     },
     {
       "parameters": {
-        "jsCode": "// База знаний магазина посуды «Северный Ковш».\n// В рабочем проекте заменяется запросом к Notion, Google Docs или векторной базе.\nconst KB = [\n  { id: 'kb-01', title: 'Доставка по России', keywords: ['доставка', 'доставить', 'курьер', 'привезти', 'сдэк', 'почта', 'стоимость доставки'],\n    text: 'Доставляем курьером и в пункты выдачи по всей России. По городу 350 ₽, бесплатно от 5000 ₽. В регионы 2–7 рабочих дней, стоимость считается в корзине.' },\n  { id: 'kb-02', title: 'Самовывоз', keywords: ['самовывоз', 'забрать', 'склад', 'адрес', 'пункт'],\n    text: 'Самовывоз со склада: ул. Заводская, 12, пн–пт 10:00–19:00. Заказ готов через 2 часа после подтверждения, хранится 5 дней.' },\n  { id: 'kb-03', title: 'Способы оплаты', keywords: ['оплата', 'оплатить', 'карта', 'сбп', 'наличные', 'счёт', 'счет'],\n    text: 'Оплата картой или по СБП на сайте, наличными или картой при получении. Для юрлиц выставляем счёт.' },\n  { id: 'kb-04', title: 'Возврат и обмен товара', keywords: ['возврат', 'вернуть', 'обмен', 'обменять', 'не подошел', 'не подошёл'],\n    text: 'Товар надлежащего качества можно вернуть в течение 14 дней, если сохранены упаковка и чек. Оформите заявку в личном кабинете, деньги вернём в течение 10 дней после получения товара.' },\n  { id: 'kb-05', title: 'Гарантия', keywords: ['гарантия', 'гарантийный', 'брак', 'сломался', 'сломалась', 'дефект', 'трещина'],\n    text: 'Гарантия на посуду 12 месяцев, на чугун 5 лет. При браке пришлите фото и номер заказа, заменим товар или вернём деньги.' },\n  { id: 'kb-06', title: 'Статус заказа', keywords: ['статус', 'где заказ', 'отследить', 'трек', 'номер заказа', 'когда придет', 'когда придёт'],\n    text: 'Статус и трек-номер видны в личном кабинете в разделе «Мои заказы». Трек приходит по SMS после передачи заказа в доставку.' },\n  { id: 'kb-07', title: 'Уход за чугунной посудой', keywords: ['чугун', 'чугунная', 'сковорода', 'ржавчина', 'прокалить', 'уход', 'мыть'],\n    text: 'Чугун моют без агрессивных средств и сразу вытирают насухо. Раз в несколько месяцев прокаливают с тонким слоем масла. Посудомоечная машина не подходит.' },\n];\n\nconst stem = w => w.toLowerCase().replace(/ё/g, 'е').slice(0, 5);\nconst words = s => s.toLowerCase().replace(/ё/g, 'е').replace(/[^a-zа-я0-9\\s]/g, ' ').split(/\\s+/).filter(w => w.length >= 3);\n\nconst q = $input.first().json;\nconst qStems = new Set(words(q.message).map(stem));\n\nconst scored = KB.map(a => {\n  const hits = a.keywords.filter(k => words(k).every(w => qStems.has(stem(w)))).length;\n  return { ...a, score: Math.min(1, hits / 2) };\n}).filter(a => a.score > 0).sort((a, b) => b.score - a.score).slice(0, 2);\n\nconst context = scored.length\n  ? scored.map(a => `[${a.id}] ${a.title}: ${a.text}`).join('\\n')\n  : 'Подходящих статей не найдено.';\n\nconst llm_request = {\n  model: q.llm_model,\n  temperature: 0.2,\n  response_format: { type: 'json_object' },\n  messages: [\n    { role: 'system', content:\n      'Ты ассистент поддержки интернет-магазина. Отвечай по-русски, коротко и вежливо, только по статьям базы знаний. ' +\n      'Если в статьях нет ответа, не придумывай. Верни JSON: {\"answer\": string, \"confidence\": число от 0 до 1, \"article_ids\": string[]}.' },\n    { role: 'user', content: `Статьи базы знаний:\\n${context}\\n\\nВопрос клиента: ${q.message}` },\n  ],\n};\n\nreturn [{ json: { ...q, kb_hits: scored.map(a => ({ id: a.id, title: a.title, score: a.score })), kb_score: scored[0]?.score || 0, llm_request } }];\n"
+        "jsCode": "// Knowledge base of the “North Ladle” cookware store.\n// In production this is replaced with a query to Notion, Google Docs or a vector DB.\nconst KB = [\n  { id: 'kb-01', title: 'Shipping', keywords: ['delivery', 'deliver', 'shipping', 'ship', 'courier', 'post', 'delivery cost'],\n    text: 'We ship by courier and to pickup points nationwide. Local delivery is $5, free over $60. Other regions take 2–7 business days, the cost is calculated in the cart.' },\n  { id: 'kb-02', title: 'Pickup', keywords: ['pickup', 'pick up', 'collect', 'warehouse', 'address'],\n    text: 'Pickup from the warehouse: 12 Factory St, Mon–Fri 10:00–19:00. Orders are ready 2 hours after confirmation and held for 5 days.' },\n  { id: 'kb-03', title: 'Payment methods', keywords: ['payment', 'pay', 'card', 'paypal', 'cash', 'invoice', 'apple pay'],\n    text: 'Pay by card, Apple Pay or PayPal on the site, or cash/card on delivery. Businesses can pay by invoice.' },\n  { id: 'kb-04', title: 'Returns and exchanges', keywords: ['return', 'refund', 'exchange', 'send back', 'did not fit', 'not fit'],\n    text: 'Items in good condition can be returned within 14 days with the packaging and receipt. Submit a request in your account, and we refund within 10 days after receiving the item.' },\n  { id: 'kb-05', title: 'Warranty', keywords: ['warranty', 'guarantee', 'broken', 'broke', 'defect', 'crack', 'damaged'],\n    text: 'Cookware has a 12-month warranty, cast iron 5 years. If it’s defective, send a photo and the order number and we’ll replace it or refund.' },\n  { id: 'kb-06', title: 'Order status', keywords: ['status', 'where is my order', 'track', 'tracking', 'order number', 'when will', 'arrive'],\n    text: 'Status and tracking number are in your account under “My orders”. Tracking is sent by SMS once the order ships.' },\n  { id: 'kb-07', title: 'Cast iron care', keywords: ['cast iron', 'skillet', 'pan', 'rust', 'season', 'care', 'wash'],\n    text: 'Wash cast iron without harsh detergents and dry it right away. Every few months, season it with a thin layer of oil. Not dishwasher safe.' },\n];\n\nconst stem = w => w.toLowerCase().slice(0, 5);\nconst words = s => s.toLowerCase().replace(/[^a-z0-9\\s]/g, ' ').split(/\\s+/).filter(w => w.length >= 3);\n\nconst q = $input.first().json;\nconst qStems = new Set(words(q.message).map(stem));\n\nconst scored = KB.map(a => {\n  const hits = a.keywords.filter(k => words(k).every(w => qStems.has(stem(w)))).length;\n  return { ...a, score: Math.min(1, hits / 2) };\n}).filter(a => a.score > 0).sort((a, b) => b.score - a.score).slice(0, 2);\n\nconst context = scored.length\n  ? scored.map(a => `[${a.id}] ${a.title}: ${a.text}`).join('\\n')\n  : 'No matching articles found.';\n\nconst llm_request = {\n  model: q.llm_model,\n  temperature: 0.2,\n  response_format: { type: 'json_object' },\n  messages: [\n    { role: 'system', content:\n      'You are a support assistant for an online store. Reply in the customer’s language, briefly and politely, using only the knowledge base articles. ' +\n      'If the articles have no answer, don’t make one up. Return JSON: {\"answer\": string, \"confidence\": number from 0 to 1, \"article_ids\": string[]}.' },\n    { role: 'user', content: `Knowledge base articles:\\n${context}\\n\\nCustomer question: ${q.message}` },\n  ],\n};\n\nreturn [{ json: { ...q, kb_hits: scored.map(a => ({ id: a.id, title: a.title, score: a.score })), kb_score: scored[0]?.score || 0, llm_request } }];\n"
       },
       "id": "02053e61-8efd-41a5-a75c-23990ff215e2",
-      "name": "Поиск в базе знаний",
+      "name": "Knowledge base search",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -226,7 +226,7 @@ pre{margin:0;padding:14px;max-height:440px;overflow:auto;color:var(--code-ink);f
         }
       },
       "id": "a0910ee4-80b9-497d-94d4-3595b57f9311",
-      "name": "LLM: OpenAI-совместимый API",
+      "name": "LLM: OpenAI-compatible API",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
@@ -245,10 +245,10 @@ pre{margin:0;padding:14px;max-height:440px;overflow:auto;color:var(--code-ink);f
     },
     {
       "parameters": {
-        "jsCode": "// Разбор ответа LLM и решение: автоответ или передача менеджеру.\nconst q = $('Поиск в базе знаний').first().json;\nconst res = $input.first().json;\n\nconst FORCE_WORDS = ['оператор', 'менеджер', 'человек', 'жалоб', 'претенз', 'суд', 'верните деньги'];\nconst text = q.message.toLowerCase();\nconst forced = FORCE_WORDS.find(w => new RegExp('(^|[^а-яё])' + w).test(text));\n\nlet answer = '', llmConf = 0, articleIds = [], llmError = '';\ntry {\n  if (res.error) throw new Error(typeof res.error === 'string' ? res.error : (res.error.message || 'llm_error'));\n  const content = res.choices?.[0]?.message?.content;\n  const parsed = typeof content === 'string' ? JSON.parse(content) : content;\n  answer = String(parsed?.answer || '').trim();\n  llmConf = Math.max(0, Math.min(1, Number(parsed?.confidence) || 0));\n  articleIds = Array.isArray(parsed?.article_ids) ? parsed.article_ids : [];\n} catch (e) {\n  llmError = String(e.message || e).slice(0, 200);\n}\n\n// Итоговая уверенность: оценка модели и совпадение с базой знаний.\nconst confidence = q.kb_score === 0 || llmError || !answer ? 0 : Math.round((0.6 * llmConf + 0.4 * q.kb_score) * 100) / 100;\n\nlet reason = '';\nif (!q.message) reason = 'пустое сообщение';\nelse if (forced) reason = `клиент просит человека или жалуется («${forced}»)`;\nelse if (llmError) reason = 'ошибка LLM: ' + llmError;\nelse if (q.kb_score === 0) reason = 'нет статьи в базе знаний';\nelse if (confidence < q.threshold) reason = `низкая уверенность ${confidence}`;\n\nreturn [{ json: {\n  ...q,\n  answer,\n  llm_confidence: llmConf,\n  article_ids: articleIds,\n  confidence,\n  force_handoff: Boolean(forced || llmError || !q.message),\n  handoff_reason: reason,\n  handoff: Boolean(reason),\n} }];\n"
+        "jsCode": "// Parse the LLM reply and decide: auto-reply or manager handoff.\nconst q = $('Knowledge base search').first().json;\nconst res = $input.first().json;\n\nconst FORCE_WORDS = ['operator', 'manager', 'human', 'complain', 'lawsuit', 'court', 'money back'];\nconst text = q.message.toLowerCase();\nconst forced = FORCE_WORDS.find(w => new RegExp('(^|[^a-z])' + w).test(text));\n\nlet answer = '', llmConf = 0, articleIds = [], llmError = '';\ntry {\n  if (res.error) throw new Error(typeof res.error === 'string' ? res.error : (res.error.message || 'llm_error'));\n  const content = res.choices?.[0]?.message?.content;\n  const parsed = typeof content === 'string' ? JSON.parse(content) : content;\n  answer = String(parsed?.answer || '').trim();\n  llmConf = Math.max(0, Math.min(1, Number(parsed?.confidence) || 0));\n  articleIds = Array.isArray(parsed?.article_ids) ? parsed.article_ids : [];\n} catch (e) {\n  llmError = String(e.message || e).slice(0, 200);\n}\n\n// Final confidence: model score plus knowledge base match.\nconst confidence = q.kb_score === 0 || llmError || !answer ? 0 : Math.round((0.6 * llmConf + 0.4 * q.kb_score) * 100) / 100;\n\nlet reason = '';\nif (!q.message) reason = 'empty message';\nelse if (forced) reason = `customer asks for a human or complains (“${forced}”)`;\nelse if (llmError) reason = 'LLM error: ' + llmError;\nelse if (q.kb_score === 0) reason = 'no knowledge base article';\nelse if (confidence < q.threshold) reason = `low confidence ${confidence}`;\n\nreturn [{ json: {\n  ...q,\n  answer,\n  llm_confidence: llmConf,\n  article_ids: articleIds,\n  confidence,\n  force_handoff: Boolean(forced || llmError || !q.message),\n  handoff_reason: reason,\n  handoff: Boolean(reason),\n} }];\n"
       },
       "id": "96a9a724-0388-4189-a5ff-54d71369c9bc",
-      "name": "Оценка уверенности",
+      "name": "Confidence check",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -290,7 +290,7 @@ pre{margin:0;padding:14px;max-height:440px;overflow:auto;color:var(--code-ink);f
         "options": {}
       },
       "id": "646ef5b2-1fa3-4b4b-9fbf-3053d690839d",
-      "name": "Уверенность ≥ порога?",
+      "name": "Confidence ≥ threshold?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
       "position": [
@@ -305,7 +305,7 @@ pre{margin:0;padding:14px;max-height:440px;overflow:auto;color:var(--code-ink);f
         "options": {}
       },
       "id": "c444db00-364a-4efa-8b28-fbae7fb6b4d8",
-      "name": "Ответ клиенту",
+      "name": "Reply to customer",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
       "position": [
@@ -316,13 +316,13 @@ pre{margin:0;padding:14px;max-height:440px;overflow:auto;color:var(--code-ink);f
     {
       "parameters": {
         "chatId": "={{ $json.manager_chat_id }}",
-        "text": "=🔔 Нужен менеджер\nТикет: {{ $json.ticket_id }}\nКанал: {{ $json.channel }}, сессия {{ $json.session_id }}\nПричина: {{ $json.handoff_reason }}\nУверенность: {{ $json.confidence }}\n\nВопрос: {{ $json.message }}",
+        "text": "=🔔 Manager needed\nTicket: {{ $json.ticket_id }}\nChannel: {{ $json.channel }}, session {{ $json.session_id }}\nReason: {{ $json.handoff_reason }}\nConfidence: {{ $json.confidence }}\n\nQuestion: {{ $json.message }}",
         "additionalFields": {
           "appendAttribution": false
         }
       },
       "id": "3091cce8-92de-4da7-9a7f-318994bacf61",
-      "name": "Уведомить менеджера",
+      "name": "Notify manager",
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
@@ -340,11 +340,11 @@ pre{margin:0;padding:14px;max-height:440px;overflow:auto;color:var(--code-ink);f
     {
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={{ JSON.stringify({ reply: 'Передал ваш вопрос менеджеру, он ответит в рабочее время. Номер обращения: ' + $('Оценка уверенности').item.json.ticket_id, handoff: true, ticket_id: $('Оценка уверенности').item.json.ticket_id }) }}",
+        "responseBody": "={{ JSON.stringify({ reply: 'I’ve passed your question to a manager, they’ll reply during business hours. Ticket number: ' + $('Confidence check').item.json.ticket_id, handoff: true, ticket_id: $('Confidence check').item.json.ticket_id }) }}",
         "options": {}
       },
       "id": "b61f7275-5e3b-4a33-9c81-9ea9e823e834",
-      "name": "Ответ: передано менеджеру",
+      "name": "Reply: handed to manager",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
       "position": [
@@ -354,10 +354,10 @@ pre{margin:0;padding:14px;max-height:440px;overflow:auto;color:var(--code-ink);f
     },
     {
       "parameters": {
-        "jsCode": "// Одна строка журнала на каждое обращение, для обеих веток.\nconst d = $('Оценка уверенности').first().json;\nreturn [{ json: {\n  'Дата': d.received_at,\n  'Тикет': d.ticket_id,\n  'Сессия': d.session_id,\n  'Канал': d.channel,\n  'Вопрос': d.message,\n  'Статьи': d.kb_hits.map(h => h.id).join(', '),\n  'Уверенность': d.confidence,\n  'Результат': d.handoff ? 'Передано менеджеру' : 'Автоответ',\n  'Причина передачи': d.handoff_reason,\n  'Ответ': d.handoff ? '' : d.answer,\n} }];\n"
+        "jsCode": "// One log row per request, for both branches.\nconst d = $('Confidence check').first().json;\nreturn [{ json: {\n  'Date': d.received_at,\n  'Ticket': d.ticket_id,\n  'Session': d.session_id,\n  'Channel': d.channel,\n  'Question': d.message,\n  'Articles': d.kb_hits.map(h => h.id).join(', '),\n  'Confidence': d.confidence,\n  'Result': d.handoff ? 'Handed to manager' : 'Auto-reply',\n  'Handoff reason': d.handoff_reason,\n  'Answer': d.handoff ? '' : d.answer,\n} }];\n"
       },
       "id": "6e7dd677-0881-4c9a-afbb-9e9e94d14c1d",
-      "name": "Строка журнала",
+      "name": "Log row",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -376,7 +376,7 @@ pre{margin:0;padding:14px;max-height:440px;overflow:auto;color:var(--code-ink);f
         "sheetName": {
           "__rl": true,
           "mode": "name",
-          "value": "Журнал"
+          "value": "Log"
         },
         "columns": {
           "mappingMode": "autoMapInputData",
@@ -387,7 +387,7 @@ pre{margin:0;padding:14px;max-height:440px;overflow:auto;color:var(--code-ink);f
         "options": {}
       },
       "id": "54992638-6759-42a7-8f7b-f458d08d76e3",
-      "name": "Журнал обращений (Google Sheets)",
+      "name": "Request log (Google Sheets)",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
       "position": [
@@ -403,13 +403,13 @@ pre{margin:0;padding:14px;max-height:440px;overflow:auto;color:var(--code-ink);f
     },
     {
       "parameters": {
-        "content": "## AI-ассистент поддержки\n\nПеред запуском: 1) поменять CONFIG в узле «Настройки и запрос»; 2) подключить учётные данные LLM (Header Auth: Authorization = Bearer KEY), Telegram и Google Sheets; 3) создать лист «Журнал» с колонками из узла «Строка журнала»; 4) заменить базу знаний в узле «Поиск в базе знаний».\n\nЗапрос: POST /webhook/support-assistant {\"message\": \"...\", \"session_id\": \"...\", \"channel\": \"web\"}",
+        "content": "## AI support assistant\n\nBefore running: 1) edit CONFIG in the “Settings & request” node; 2) connect LLM credentials (Header Auth: Authorization = Bearer KEY), Telegram and Google Sheets; 3) create a “Log” sheet with the columns from the “Log row” node; 4) replace the knowledge base in the “Knowledge base search” node.\n\nRequest: POST /webhook/support-assistant {\"message\": \"...\", \"session_id\": \"...\", \"channel\": \"web\"}",
         "height": 260,
         "width": 640,
         "color": 6
       },
       "id": "ab92fdaa-d153-4557-9bf8-0ba0cd0c6e2c",
-      "name": "Заметка: настройка",
+      "name": "Note: setup",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
@@ -419,117 +419,117 @@ pre{margin:0;padding:14px;max-height:440px;overflow:auto;color:var(--code-ink);f
     }
   ],
   "connections": {
-    "Webhook: сообщение клиента": {
+    "Webhook: customer message": {
       "main": [
         [
           {
-            "node": "Настройки и запрос",
+            "node": "Settings & request",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Настройки и запрос": {
+    "Settings & request": {
       "main": [
         [
           {
-            "node": "Поиск в базе знаний",
+            "node": "Knowledge base search",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Поиск в базе знаний": {
+    "Knowledge base search": {
       "main": [
         [
           {
-            "node": "LLM: OpenAI-совместимый API",
+            "node": "LLM: OpenAI-compatible API",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "LLM: OpenAI-совместимый API": {
+    "LLM: OpenAI-compatible API": {
       "main": [
         [
           {
-            "node": "Оценка уверенности",
+            "node": "Confidence check",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Оценка уверенности": {
+    "Confidence check": {
       "main": [
         [
           {
-            "node": "Уверенность ≥ порога?",
+            "node": "Confidence ≥ threshold?",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Уверенность ≥ порога?": {
+    "Confidence ≥ threshold?": {
       "main": [
         [
           {
-            "node": "Ответ клиенту",
+            "node": "Reply to customer",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Уведомить менеджера",
+            "node": "Notify manager",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Уведомить менеджера": {
+    "Notify manager": {
       "main": [
         [
           {
-            "node": "Ответ: передано менеджеру",
+            "node": "Reply: handed to manager",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Ответ клиенту": {
+    "Reply to customer": {
       "main": [
         [
           {
-            "node": "Строка журнала",
+            "node": "Log row",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Ответ: передано менеджеру": {
+    "Reply: handed to manager": {
       "main": [
         [
           {
-            "node": "Строка журнала",
+            "node": "Log row",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Строка журнала": {
+    "Log row": {
       "main": [
         [
           {
-            "node": "Журнал обращений (Google Sheets)",
+            "node": "Request log (Google Sheets)",
             "type": "main",
             "index": 0
           }
@@ -550,26 +550,26 @@ pre{margin:0;padding:14px;max-height:440px;overflow:auto;color:var(--code-ink);f
 <script>
 const WF = document.getElementById('wf').textContent;
 document.getElementById('json').textContent = WF;
-document.getElementById('jsonmeta').textContent = 'n8n-support-assistant.json · ' + Math.round(WF.length/1024) + ' КБ';
+document.getElementById('jsonmeta').textContent = 'n8n-support-assistant.json · ' + Math.round(WF.length/1024) + ' KB';
 document.getElementById('copy').addEventListener('click', e => {
   const b = e.currentTarget;
-  navigator.clipboard.writeText(WF).then(() => { b.textContent = 'Скопировано'; setTimeout(() => b.textContent = 'Копировать JSON', 1800); })
-  .catch(() => { const r = document.createRange(); r.selectNodeContents(document.getElementById('json')); const s = getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = 'Выделено, нажмите ⌘C'; });
+  navigator.clipboard.writeText(WF).then(() => { b.textContent = 'Copied'; setTimeout(() => b.textContent = 'Copy JSON', 1800); })
+  .catch(() => { const r = document.createRange(); r.selectNodeContents(document.getElementById('json')); const s = getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = 'Selected, press ⌘C'; });
 });
 
-/* ---------- схема ---------- */
+/* ---------- diagram ---------- */
 const NODES = [
-  {id:'wh',x:10,y:122,k:'WEBHOOK',l:['Сообщение','клиента']},
-  {id:'cfg',x:135,y:122,k:'CODE',l:['Настройки','и запрос']},
-  {id:'kb',x:260,y:122,k:'CODE',l:['Поиск в базе','знаний']},
+  {id:'wh',x:10,y:122,k:'WEBHOOK',l:['Customer','message']},
+  {id:'cfg',x:135,y:122,k:'CODE',l:['Settings','& request']},
+  {id:'kb',x:260,y:122,k:'CODE',l:['Knowledge base','search']},
   {id:'llm',x:385,y:122,k:'HTTP REQUEST',l:['LLM','OpenAI API']},
-  {id:'conf',x:510,y:122,k:'CODE',l:['Оценка','уверенности']},
-  {id:'if',x:640,y:122,k:'IF',l:['≥ порога?'],d:1},
-  {id:'ans',x:780,y:30,k:'RESPOND',l:['Ответ','клиенту']},
-  {id:'tg',x:780,y:214,k:'TELEGRAM',l:['Уведомить','менеджера'],w:1},
-  {id:'hand',x:905,y:214,k:'RESPOND',l:['«Передано','менеджеру»'],w:1},
-  {id:'logc',x:1015,y:122,k:'CODE',l:['Строка','журнала']},
-  {id:'gs',x:1135,y:122,k:'GOOGLE SHEETS',l:['Журнал','обращений']},
+  {id:'conf',x:510,y:122,k:'CODE',l:['Confidence','check']},
+  {id:'if',x:640,y:122,k:'IF',l:['≥ threshold?'],d:1},
+  {id:'ans',x:780,y:30,k:'RESPOND',l:['Reply to','customer']},
+  {id:'tg',x:780,y:214,k:'TELEGRAM',l:['Notify','manager'],w:1},
+  {id:'hand',x:905,y:214,k:'RESPOND',l:['“Handed to','manager”'],w:1},
+  {id:'logc',x:1015,y:122,k:'CODE',l:['Log','row']},
+  {id:'gs',x:1135,y:122,k:'GOOGLE SHEETS',l:['Request','log']},
 ];
 const W=108,H=56,ns='http://www.w3.org/2000/svg';
 const P={};NODES.forEach(n=>P[n.id]=n);
@@ -580,7 +580,7 @@ const edge=(a,b,label,ly)=>{const [x1,y1]=R(P[a]),[x2,y2]=L(P[b]);const mx=(x1+x
   mk('path',{class:'e',d:`M${x1} ${y1}C${mx} ${y1} ${mx} ${y2} ${x2-2} ${y2}`,'marker-end':'url(#ar)'},gE);
   if(label) mk('text',{class:'lbl',x:x1+10,y:ly},gE).textContent=label;};
 [['wh','cfg'],['cfg','kb'],['kb','llm'],['llm','conf'],['conf','if'],['tg','hand'],['ans','logc'],['hand','logc'],['logc','gs']].forEach(e=>edge(...e));
-edge('if','ans','да',118);edge('if','tg','нет',212);
+edge('if','ans','yes',118);edge('if','tg','no',212);
 NODES.forEach(n=>{const g=mk('g',{class:'n'+(n.w?' w':''),'data-id':n.id},gN);
   if(n.d){const cx=n.x+W/2,cy=n.y+H/2;mk('path',{d:`M${cx} ${n.y-14}L${n.x+W} ${cy}L${cx} ${n.y+H+14}L${n.x} ${cy}Z`},g)}
   else mk('rect',{x:n.x,y:n.y,width:W,height:H,rx:9},g);
@@ -594,12 +594,12 @@ function light(path,handoff){timers.forEach(clearTimeout);timers=[];
   document.querySelectorAll('.n').forEach(g=>g.classList.remove('on'));
   path.forEach((id,i)=>{const f=()=>document.querySelector(`.n[data-id="${id}"]`).classList.add('on');reduce?f():timers.push(setTimeout(f,i*140))});}
 
-/* ---------- логика Code-узлов (та же, что в JSON) ---------- */
-const KB=JSON.parse(WF).nodes.find(n=>n.name==='Поиск в базе знаний').parameters.jsCode;
+/* ---------- Code node logic (same as in the JSON) ---------- */
+const KB=JSON.parse(WF).nodes.find(n=>n.name==='Knowledge base search').parameters.jsCode;
 const ARTS=new Function(KB.split('const stem')[0]+';return KB')();
-const stem=w=>w.toLowerCase().replace(/ё/g,'е').slice(0,5);
-const words=s=>s.toLowerCase().replace(/ё/g,'е').replace(/[^a-zа-я0-9\s]/g,' ').split(/\s+/).filter(w=>w.length>=3);
-const FORCE=['оператор','менеджер','человек','жалоб','претенз','суд','верните деньги'];
+const stem=w=>w.toLowerCase().slice(0,5);
+const words=s=>s.toLowerCase().replace(/[^a-z0-9\s]/g,' ').split(/\s+/).filter(w=>w.length>=3);
+const FORCE=['operator','manager','human','complain','lawsuit','court','money back'];
 const TH=0.7;
 function decide(msg){
   const qs=new Set(words(msg).map(stem));
@@ -608,14 +608,14 @@ function decide(msg){
   const llmConf=kb===1?0.9:kb>0?0.6:0.2;
   const answer=hits[0]?hits[0].text:'';
   const conf=kb===0||!answer?0:Math.round((0.6*llmConf+0.4*kb)*100)/100;
-  const forced=FORCE.find(w=>new RegExp('(^|[^а-яё])'+w).test(msg.toLowerCase()));
+  const forced=FORCE.find(w=>new RegExp('(^|[^a-z])'+w).test(msg.toLowerCase()));
   let reason='';
-  if(!msg)reason='пустое сообщение';else if(forced)reason=`клиент просит человека или жалуется («${forced}»)`;
-  else if(kb===0)reason='нет статьи в базе знаний';else if(conf<TH)reason=`низкая уверенность ${conf}`;
+  if(!msg)reason='empty message';else if(forced)reason=`customer asks for a human or complains (“${forced}”)`;
+  else if(kb===0)reason='no knowledge base article';else if(conf<TH)reason=`low confidence ${conf}`;
   return {hits,kb,llmConf,conf,answer,reason,handoff:!!reason};
 }
 
-/* ---------- стенд ---------- */
+/* ---------- sandbox ---------- */
 const chat=document.getElementById('chat'),trace=document.getElementById('trace'),log=document.getElementById('log');
 let n=0;
 const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -626,21 +626,21 @@ function ask(msg,animate=true){
   const t=new Date(); const time=t.toTimeString().slice(0,5);
   const ticket='T-'+String(1040+n);
   bubble('u',esc(msg)+`<small>${time}</small>`);
-  if(r.handoff) bubble('b h',`Передал ваш вопрос менеджеру, он ответит в рабочее время. Номер обращения: ${ticket}<small>Передано менеджеру · ${esc(r.reason)}</small>`);
-  else bubble('b',esc(r.answer)+`<small>Автоответ · уверенность ${r.conf.toFixed(2)}</small>`);
+  if(r.handoff) bubble('b h',`I’ve passed your question to a manager, they’ll reply during business hours. Ticket number: ${ticket}<small>Handed to manager · ${esc(r.reason)}</small>`);
+  else bubble('b',esc(r.answer)+`<small>Auto-reply · confidence ${r.conf.toFixed(2)}</small>`);
   document.getElementById('tk').textContent=ticket;
   const pct=Math.round(r.conf*100);
   trace.innerHTML=`
-   <div class="row"><span class="t">Найдено в базе знаний</span><div class="hits">${r.hits.length?r.hits.map(h=>`<div class="hit"><span>${esc(h.title)}</span><span>${h.score.toFixed(1)}</span></div>`).join(''):'<span class="note">Подходящих статей нет</span>'}</div></div>
-   <div class="row"><span class="t">Итоговая уверенность</span><div class="meter${r.conf<TH?' low':''}"><i style="width:${pct}%"></i><s style="left:${TH*100}%"></s></div><div class="mv"><span>${r.conf.toFixed(2)} = 0,6 × LLM ${r.llmConf.toFixed(2)} + 0,4 × база ${r.kb.toFixed(2)}</span><span>порог ${TH}</span></div></div>
-   <div class="verdict${r.handoff?' h':''}">${r.handoff?'Передано менеджеру: '+esc(r.reason)+'. В Telegram ушло уведомление.':'Автоответ клиенту'}</div>`;
+   <div class="row"><span class="t">Found in knowledge base</span><div class="hits">${r.hits.length?r.hits.map(h=>`<div class="hit"><span>${esc(h.title)}</span><span>${h.score.toFixed(1)}</span></div>`).join(''):'<span class="note">No matching articles</span>'}</div></div>
+   <div class="row"><span class="t">Final confidence</span><div class="meter${r.conf<TH?' low':''}"><i style="width:${pct}%"></i><s style="left:${TH*100}%"></s></div><div class="mv"><span>${r.conf.toFixed(2)} = 0.6 × LLM ${r.llmConf.toFixed(2)} + 0.4 × KB ${r.kb.toFixed(2)}</span><span>threshold ${TH}</span></div></div>
+   <div class="verdict${r.handoff?' h':''}">${r.handoff?'Handed to manager: '+esc(r.reason)+'. A Telegram notification was sent.':'Auto-reply to customer'}</div>`;
   const tr=document.createElement('tr');
-  tr.innerHTML=`<td>${time}</td><td>${ticket}</td><td class="q">${esc(msg)}</td><td>${r.hits.map(h=>h.id).join(', ')||'—'}</td><td>${r.conf.toFixed(2)}</td><td><span class="pill${r.handoff?' h':''}">${r.handoff?'Передано менеджеру':'Автоответ'}</span></td>`;
+  tr.innerHTML=`<td>${time}</td><td>${ticket}</td><td class="q">${esc(msg)}</td><td>${r.hits.map(h=>h.id).join(', ')||'—'}</td><td>${r.conf.toFixed(2)}</td><td><span class="pill${r.handoff?' h':''}">${r.handoff?'Handed to manager':'Auto-reply'}</span></td>`;
   log.prepend(tr);
   const path=['wh','cfg','kb','llm','conf','if',...(r.handoff?['tg','hand']:['ans']),'logc','gs'];
   animate?light(path):path.forEach(id=>document.querySelector(`.n[data-id="${id}"]`).classList.add('on'));
 }
-const SAMPLES=['Сколько стоит доставка курьером?','Как ухаживать за чугунной сковородой?','Хочу вернуть посуду, не подошла','Можно заказать гравировку на крышке?','Соедините с оператором, у меня жалоба'];
+const SAMPLES=['How much is courier delivery?','How do I care for a cast iron skillet?','I want to return a pan, it does not fit','Can I order an engraving on the lid?','Connect me to an operator, I have a complaint'];
 const sw=document.getElementById('samples');
 SAMPLES.forEach(s=>{const b=document.createElement('button');b.type='button';b.textContent=s;b.onclick=()=>ask(s);sw.appendChild(b)});
 document.getElementById('form').addEventListener('submit',e=>{e.preventDefault();const i=document.getElementById('q');ask(i.value);i.value='';});
